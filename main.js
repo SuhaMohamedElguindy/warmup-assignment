@@ -70,7 +70,19 @@ function getShiftDuration(startTime, endTime) {
 // Returns: string formatted as h:mm:ss
 // ============================================================
 function getIdleTime(startTime, endTime) {
-    // TODO: Implement this function
+    let start=convertTimeToSec(startTime);
+    let end=convertTimeToSec(endTime);
+    const deliveryStartTime=convertTimeToSec("08:00:00 am");
+    const deliveryEndTime=convertTimeToSec("10:00:00 pm");
+    let idleTime=0;
+    
+    if(start<deliveryStartTime){
+        idleTime+=deliveryStartTime-start;
+    }
+    if(end>deliveryEndTime){
+        idleTime+=end-deliveryEndTime;
+    }
+    return convertSecondsToTime(idleTime);
 }
 
 // ============================================================
@@ -80,7 +92,19 @@ function getIdleTime(startTime, endTime) {
 // Returns: string formatted as h:mm:ss
 // ============================================================
 function getActiveTime(shiftDuration, idleTime) {
-    // TODO: Implement this function
+    let start=convertTimeToSec(startTime);
+    let end=convertTimeToSec(endTime);
+    const deliveryStartTime=convertTimeToSec("08:00:00 am");
+    const deliveryEndTime=convertTimeToSec("10:00:00 pm");
+    let idleTime=0;
+    
+    if(start<deliveryStartTime){
+        idleTime+=deliveryStartTime-start;
+    }
+    if(end>deliveryEndTime){
+        idleTime+=end-deliveryEndTime;
+    }
+    return convertSecondsToTime(idleTime);
 }
 
 // ============================================================
@@ -90,7 +114,18 @@ function getActiveTime(shiftDuration, idleTime) {
 // Returns: boolean
 // ============================================================
 function metQuota(date, activeTime) {
-    // TODO: Implement this function
+    let dailyQuota=0;
+    if(date>="2025-04-10" && date<="2025-04-30"){
+        dailyQuota=convertTimeToSeconds("06:00:00");
+    }else{
+        dailyQuota=convertTimeToSeconds("08:24:00");
+    }
+    let active=convertTimeToSeconds(activeTime);
+    if(active<dailyQuota){
+        return false;
+    }else{
+        return true;
+    }
 }
 
 // ============================================================
@@ -100,7 +135,63 @@ function metQuota(date, activeTime) {
 // Returns: object with 10 properties or empty object {}
 // ============================================================
 function addShiftRecord(textFile, shiftObj) {
-    // TODO: Implement this function
+    let content = fs.readFileSync(textFile, "utf8").trim();
+    let lines =content.split("\n");
+    let header = lines[0];
+    let dataLines = lines.slice(1);
+    
+    for(let i=0;i<dataLines.length;i++){
+        let parts=dataLines[i].split(",");
+        if(parts[0]===shiftObj.driverID && parts[2]===shiftObj.date){
+            return {};
+        }
+    }
+    
+    let shiftDuration=getShiftDuration(shiftObj.startTime,shiftObj.endTime);
+    let idleTime=getIdleTime(shiftObj.startTime,shiftObj.endTime);
+    let activeTime=getActiveTime(shiftDuration,idleTime);
+    let quotaMet=metQuota(shiftObj.date,activeTime);
+    
+    let newRecord = {
+    driverID: shiftObj.driverID,
+    driverName: shiftObj.driverName,
+    date: shiftObj.date,
+    startTime: shiftObj.startTime,
+    endTime: shiftObj.endTime,
+    shiftDuration: shiftDuration,
+    idleTime: idleTime,
+    activeTime: activeTime,
+    quotaMet: quotaMet,//the variable name metQuota collides with the function name so I changed it to quotaMet
+    hasBonus: false
+    };
+    let newLine = [
+        newRecord.driverID,
+        newRecord.driverName,
+        newRecord.date,
+        newRecord.startTime,
+        newRecord.endTime,
+        newRecord.shiftDuration,
+        newRecord.idleTime,
+        newRecord.activeTime,
+        newRecord.metQuota,
+        newRecord.hasBonus
+    ].join(",");
+    let insertIndex = dataLines.length;
+
+    for (let i = 0; i < dataLines.length; i++) {
+        let currentID = dataLines[i].split(",")[0];
+
+        if (currentID === shiftObj.driverID) {
+            insertIndex = i + 1;
+        }
+    }
+    dataLines.splice(insertIndex, 0, newLine);
+
+    let finalLines = [header, ...dataLines];
+    fs.writeFileSync(textFile, finalLines.join("\n"));
+
+    return newRecord;
+
 }
 
 // ============================================================
