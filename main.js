@@ -1,5 +1,51 @@
 const fs = require("fs");
 
+
+//Helper functions
+function convertTimeToSec(givenTime){
+    let[timePart,APM]=givenTime.split(" ");
+    let timeArr=timePart.split(":");
+    let hours=Number(timeArr[0]);
+    let minutes=Number(timeArr[1]);
+    let seconds=Number(timeArr[2]);
+    if(APM==="am" && hours===12){
+        hours=0;
+    }else if(APM==="pm" && hours!==12){
+        hours+=12;
+    }
+
+    return hours*3600 + minutes*60 + seconds;
+}
+function convertSecondsToTime(timeInSeconds){
+    let hours=parseInt(timeInSeconds/3600);
+    timeInSeconds=timeInSeconds-(hours*3600);
+    let minutes=parseInt(timeInSeconds/60);
+    let seconds=timeInSeconds-(minutes*60);
+    let formattedMinutes = minutes < 10 ? "0" + minutes : minutes;
+    let formattedSeconds = seconds < 10 ? "0" + seconds : seconds;
+    
+    return hours + ":" + formattedMinutes + ":" + formattedSeconds;
+}
+function convertTimeToSeconds(time){
+    let timeArr=time.split(":"); 
+    let hours=Number(timeArr[0]); 
+    let minutes=Number(timeArr[1]); 
+    let seconds=Number(timeArr[2]); 
+    return hours*3600 + minutes*60 + seconds;
+}
+function getDayOff(rateFile, driverID) {
+    let content = fs.readFileSync(rateFile, "utf8").trim();
+    let lines=content.split("\n");
+
+    for (let i = 0; i < lines.length; i++) {
+        let parts = lines[i].split(",");
+        if (parts[0] === driverID) {
+            return parts[1]; 
+        }
+    }
+    return null;
+}
+
 // ============================================================
 // Function 1: getShiftDuration(startTime, endTime)
 // startTime: (typeof string) formatted as hh:mm:ss am or hh:mm:ss pm
