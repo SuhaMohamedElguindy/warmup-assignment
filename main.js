@@ -53,7 +53,14 @@ function getDayOff(rateFile, driverID) {
 // Returns: string formatted as h:mm:ss
 // ============================================================
 function getShiftDuration(startTime, endTime) {
-    // TODO: Implement this function
+    let start=convertTimeToSec(startTime);
+    let end=convertTimeToSec(endTime);
+
+    let duration=end-start;
+    if(duration<0){
+        duration=(3600*24)-start+end;
+    }
+    return convertSecondsToTime(duration);
 }
 
 // ============================================================
