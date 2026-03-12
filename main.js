@@ -92,19 +92,15 @@ function getIdleTime(startTime, endTime) {
 // Returns: string formatted as h:mm:ss
 // ============================================================
 function getActiveTime(shiftDuration, idleTime) {
-    let start=convertTimeToSec(startTime);
-    let end=convertTimeToSec(endTime);
-    const deliveryStartTime=convertTimeToSec("08:00:00 am");
-    const deliveryEndTime=convertTimeToSec("10:00:00 pm");
-    let idleTime=0;
-    
-    if(start<deliveryStartTime){
-        idleTime+=deliveryStartTime-start;
+    let shift=convertTimeToSeconds(shiftDuration);
+    let idle=convertTimeToSeconds(idleTime);
+    let active=0;
+    if(shift>idle){
+       active=shift-idle; 
+    }else{
+        active=idle-shift;
     }
-    if(end>deliveryEndTime){
-        idleTime+=end-deliveryEndTime;
-    }
-    return convertSecondsToTime(idleTime);
+    return convertSecondsToTime(active);
 }
 
 // ============================================================
@@ -344,7 +340,7 @@ function getNetPay(driverID, actualHours, requiredHours, rateFile) {
         let parts = lines[i].split(",");
         if (parts[0] === driverID) {
             basePay=Number(parts[2]); 
-            let tier=Number(parts[3]);
+            tier=Number(parts[3]);
             break;
         }      
     }
